@@ -9,7 +9,25 @@ miro.onReady(() => {
                     tooltip: 'Export as a graph (JSON)',
                     svgIcon: icon24,
                     onClick: () => {
-                        console.log('onClick', widgets)
+                        let graph = {
+                            "nodes": widgets.filter(w => w.type === "SHAPE").map(shape => {
+                                return {
+                                    "id": shape.id,
+                                    "plainText": shape.plainText
+                                }
+                            }),
+                            "edges": widgets.filter(w => w.type === "LINE").map(line => {
+                                return {
+                                    "id": line.id,
+                                    "startWidgetId": line.startWidgetId,
+                                    "endWidgetId": line.endWidgetId,
+                                    "caption": line.captions && line.captions.length > 0 ? line.captions[0].text : ""
+                                }
+                            })
+                        };
+
+                        var graphJson = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(graph));
+                        download(graphJson, "graph.json");
                     }
                 }, {
                     tooltip: 'Export as a graph (CSV)',
@@ -19,7 +37,7 @@ miro.onReady(() => {
                         let nodesCsv = "data:text/csv;charset=utf-8," + "id,plainText\n" + nodes.map(e => e.join(",")).join("\n");
                         download(nodesCsv, "nodes.csv")
 
-                        let edges = widgets.filter(w => w.type === "LINE").map(line => [line.id, line.startWidgetId, line.endWidgetId, line.captions.length > 0 ? line.captions[0].text : ""]);
+                        let edges = widgets.filter(w => w.type === "LINE").map(line => [line.id, line.startWidgetId, line.endWidgetId, line.captions && line.captions.length > 0 ? line.captions[0].text : ""]);
                         let edgesCsv = "data:text/csv;charset=utf-8," + "id,startWidgetId,endWindgetId,caption\n" + edges.map(e => e.join(",")).join("\n");
                         download(edgesCsv, "edges.csv")
                     }
@@ -28,19 +46,6 @@ miro.onReady(() => {
         }
     })
 })
-
-// miro.board.selection.get().then((s) => {
-
-
-//     let nodes = s.filter(item => item.type === "SHAPE").map(shape => [shape.id, shape.plainText]);
-
-//     let nodesCsv = "data:text/csv;charset=utf-8," + "id,plainText\n" + nodes.map(e => e.join(",")).join("\n");
-//     download(nodesCsv, "nodes.csv")
-
-//     let edges = s.filter(item => item.type === "LINE").map(line => [line.id, line.startWidgetId, line.endWidgetId, line.captions.length > 0 ? line.captions[0].text : ""]);
-//     let edgesCsv = "data:text/csv;charset=utf-8," + "id,startWidgetId,endWindgetId,caption\n" + edges.map(e => e.join(",")).join("\n");
-//     download(edgesCsv, "edges.csv")
-// })
 
 function download(content, fileName) {
     var encodedUri = encodeURI(content);
@@ -51,14 +56,3 @@ function download(content, fileName) {
 
     link.click();
 }
-  /*
-
-
-nodes columns:
-id : string
-plainText : string
-
-edges columns
-id : string
-
-*/
