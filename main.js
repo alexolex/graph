@@ -8,14 +8,20 @@ miro.onReady(() => {
                 return Promise.resolve([{
                     tooltip: 'Export as a graph (JSON)',
                     svgIcon: icon24,
-                    onClick: (widgets) => {
+                    onClick: () => {
                         console.log('onClick', widgets)
                     }
                 }, {
                     tooltip: 'Export as a graph (CSV)',
                     svgIcon: icon24,
-                    onClick: (widgets) => {
-                        console.log('onClick', widgets)
+                    onClick: () => {
+                        let nodes = widgets.filter(w => w.type === "SHAPE").map(shape => [shape.id, shape.plainText]);
+                        let nodesCsv = "data:text/csv;charset=utf-8," + "id,plainText\n" + nodes.map(e => e.join(",")).join("\n");
+                        download(nodesCsv, "nodes.csv")
+
+                        let edges = widgets.filter(w => w.type === "LINE").map(line => [line.id, line.startWidgetId, line.endWidgetId, line.captions.length > 0 ? line.captions[0].text : ""]);
+                        let edgesCsv = "data:text/csv;charset=utf-8," + "id,startWidgetId,endWindgetId,caption\n" + edges.map(e => e.join(",")).join("\n");
+                        download(edgesCsv, "edges.csv")
                     }
                 }])
             }
