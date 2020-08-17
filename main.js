@@ -1,7 +1,7 @@
 miro.onReady(() => {
     miro.initialize({
         extensionPoints: {
-            widgetContextMenu: [{
+            widgetContextMenu: {
                 title: 'Export Graph as JSON',
                 svgIcon: '<circle cx="12" cy="12" r="9" fill="none" fill-rule="evenodd" stroke="currentColor" stroke-width="2"/>',
                 onClick: () => {
@@ -19,17 +19,17 @@ miro.onReady(() => {
                         download(edgesCsv, "edges.csv")
                     })
                 }
-            },
-            {
-                title: 'Export Graph as CSV',
-                svgIcon: '<circle cx="12" cy="12" r="9" fill="none" fill-rule="evenodd" stroke="currentColor" stroke-width="2"/>',
-                onClick: () => {
+            }
+            // {
+            //     title: 'Export Graph as CSV',
+            //     svgIcon: '<circle cx="12" cy="12" r="9" fill="none" fill-rule="evenodd" stroke="currentColor" stroke-width="2"/>',
+            //     onClick: () => {
 
-                    miro.board.selection.get().then((s) => {
-                        alert("Hello!")
-                    })
-                }
-            }]
+            //         miro.board.selection.get().then((s) => {
+            //             alert("Hello!")
+            //         })
+            //     }
+            // }]
         }
     })
 })
