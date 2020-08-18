@@ -9,43 +9,51 @@ miro.onReady(() => {
                     tooltip: 'Export graph to JSON',
                     svgIcon: export_icon24,
                     onClick: async () => {
-
-                        const authorized = await miro.isAuthorized()
-                        if (authorized) {
-                            exportToJson();
-                        } else {
-                            console.log("App needs auth by the user...");
-
-                            miro.board.ui.openModal('miro-graph-tools/not-authorized.html')
-                                .then(res => {
-                                    if (res === 'success') {
-                                        exportToJson()
-                                    }
-                                })
-                        }
+                        await authAndExport(exportToJson);
                     }
                 },
                 {
                     tooltip: 'Export graph to CSV',
                     svgIcon: export_icon24,
-                    onClick: () => {
-
-                        miro.board.selection.get().then((selection) => {
-
-                            let nodes = selection.filter(w => w.type === "SHAPE").map(shape => [shape.id, shape.plainText]);
-                            let nodesCsv = "data:text/csv;charset=utf-8," + "id,plainText\n" + nodes.map(e => e.join(",")).join("\n");
-                            download(nodesCsv, "nodes.csv")
-
-                            let edges = selection.filter(w => w.type === "LINE").map(line => [line.id, line.startWidgetId, line.endWidgetId, line.captions && line.captions.length > 0 ? line.captions[0].text : ""]);
-                            let edgesCsv = "data:text/csv;charset=utf-8," + "id,startWidgetId,endWindgetId,caption\n" + edges.map(e => e.join(",")).join("\n");
-                            download(edgesCsv, "edges.csv")
-                        });
+                    onClick: async () => {
+                        await authAndExport(exportToCsv);
                     }
                 }])
             }
         }
     })
 })
+
+async function authAndExport(exportToFunc) {
+    const authorized = await miro.isAuthorized()
+    if (authorized) {
+        exportToFunc();
+    } else {
+        console.log("App needs auth by the user...");
+
+        miro.board.ui.openModal('miro-graph-tools/not-authorized.html')
+            .then(res => {
+                if (res === 'success') {
+                    exportToFunc();
+                }
+            })
+    }
+}
+
+function exportToCsv() {
+    miro.board.selection.get().then((selection) => {
+
+        let nodes = selection.filter(w => w.type === "SHAPE").map(shape => [shape.id, shape.plainText]);
+        let nodesCsv = "data:text/csv;charset=utf-8," + "id,plainText\n" + nodes.map(e => e.join(",")).join("\n");
+        download(nodesCsv, "nodes.csv")
+
+        let edges = selection.filter(w => w.type === "LINE").map(line => [line.id, line.startWidgetId, line.endWidgetId, line.captions && line.captions.length > 0 ? line.captions[0].text : ""]);
+        let edgesCsv = "data:text/csv;charset=utf-8," + "id,startWidgetId,endWindgetId,caption\n" + edges.map(e => e.join(",")).join("\n");
+        download(edgesCsv, "edges.csv")
+
+        console.log("Successfully exported a graph to CSV.")
+    });
+}
 
 function exportToJson() {
     miro.board.selection.get().then((selection) => {
