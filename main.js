@@ -6,36 +6,27 @@ miro.onReady(() => {
 
             getWidgetMenuItems: (widgets) => {
                 return Promise.resolve([{
-                    tooltip: 'Export as a graph (JSON)',
+                    tooltip: 'Export graph to JSON',
                     svgIcon: export_icon24,
                     onClick: () => {
 
-                        miro.board.selection.get().then((selection) => {
+                        const authorized = await miro.isAuthorized()
+                        if (authorized) {
+                            exportToJson();
+                        } else {
+                            console.log("App needs auth by the user...");
 
-                            let graph = {
-                                "nodes": selection.filter(w => w.type === "SHAPE").map(shape => {
-                                    return {
-                                        "id": shape.id,
-                                        "plainText": shape.plainText
-                                    }
-                                }),
-                                "edges": selection.filter(w => w.type === "LINE").map(line => {
-                                    return {
-                                        "id": line.id,
-                                        "startWidgetId": line.startWidgetId,
-                                        "endWidgetId": line.endWidgetId,
-                                        "caption": line.captions && line.captions.length > 0 ? line.captions[0].text : ""
+                            miro.board.ui.openModal('not-authorized.html')
+                                .then(res => {
+                                    if (res === 'success') {
+                                        exportToJson()
                                     }
                                 })
-                            };
-
-                            var graphJson = "data:text/json;charset=utf-8," + JSON.stringify(graph);
-                            download(graphJson, "graph.json");
-                        })
+                        }
                     }
                 },
                 {
-                    tooltip: 'Export as a graph (CSV)',
+                    tooltip: 'Export graph to CSV',
                     svgIcon: export_icon24,
                     onClick: () => {
 
@@ -55,6 +46,33 @@ miro.onReady(() => {
         }
     })
 })
+
+function exportToJson() {
+    miro.board.selection.get().then((selection) => {
+
+        let graph = {
+            "nodes": selection.filter(w => w.type === "SHAPE").map(shape => {
+                return {
+                    "id": shape.id,
+                    "plainText": shape.plainText
+                }
+            }),
+            "edges": selection.filter(w => w.type === "LINE").map(line => {
+                return {
+                    "id": line.id,
+                    "startWidgetId": line.startWidgetId,
+                    "endWidgetId": line.endWidgetId,
+                    "caption": line.captions && line.captions.length > 0 ? line.captions[0].text : ""
+                }
+            })
+        };
+
+        var graphJson = "data:text/json;charset=utf-8," + JSON.stringify(graph);
+        download(graphJson, "graph.json");
+
+        console.log("Successfully exported a graph to JSON.")
+    })
+}
 
 function download(content, fileName) {
     var encodedUri = encodeURI(content);
