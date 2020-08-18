@@ -16,7 +16,7 @@ miro.onReady(() => {
                         } else {
                             console.log("App needs auth by the user...");
 
-                            miro.board.ui.openModal('not-authorized.html')
+                            miro.board.ui.openModal('miro-graph-tools/not-authorized.html')
                                 .then(res => {
                                     if (res === 'success') {
                                         exportToJson()
