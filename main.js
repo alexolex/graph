@@ -8,7 +8,7 @@ miro.onReady(() => {
                 return Promise.resolve([{
                     tooltip: 'Export graph to JSON',
                     svgIcon: export_icon24,
-                    onClick: () => {
+                    onClick: async () => {
 
                         const authorized = await miro.isAuthorized()
                         if (authorized) {
