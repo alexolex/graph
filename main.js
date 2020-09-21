@@ -52,8 +52,53 @@ function exportToSql() {
 function genSqlScript(g) {
 
     let script = "";
-    //TODO: implement
+    
+    let nodesByType = groupByType(g.nodes);
+    for (let [type, nodes] of nodesByType.entries()) {
+        script += buildInsertNodesSnippet(type, nodes);
+    }
+
     return script;
+}
+
+function buildInsertNodesSnippet(type, nodes){
+
+    let s = 
+`IF TYPE_ID('${type}Type') IS NULL
+	CREATE TYPE [${type}Type] AS TABLE (
+		[id] int,
+		[boardId] nvarchar(30),
+		[text] nvarchar(max),
+		[whenCreated] [datetime]
+	)
+GO
+
+IF OBJECT_ID ('dbo.${type}', 'U') IS NULL
+	CREATE TABLE [${type}] (
+		[id] int IDENTITY(1,1) UNIQUE,
+		[boardId] nvarchar(30) NOT NULL,
+		[text] nvarchar(max) NULL,
+		[whenCreated] [datetime] NOT NULL CONSTRAINT CreateTS_DF DEFAULT CURRENT_TIMESTAMP
+	)
+	as NODE
+GO
+
+INSERT INTO [${type}]
+    ([boardId], [text]) Values ${nodes.map(n => "\n('" + n.id + "'), ('" + n.text + "')").join(",")}
+GO`;
+    
+    return s;
+}
+
+function groupByType(elements){
+    let byType = new Map();
+    elements.array.forEach(e => {
+        if (!byType.has(e.type))
+        {
+            byType.set(e.type, new Array());
+        }
+        byType.set(e.type, byType.get(e.type).push(e));
+    });
 }
 
 function toGraph(selection) {
