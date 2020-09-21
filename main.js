@@ -92,7 +92,7 @@ GO`;
 
 function groupByType(elements){
     let byType = new Map();
-    elements.array.forEach(e => {
+    elements.forEach(e => {
         if (!byType.has(e.type))
         {
             byType.set(e.type, new Array());
