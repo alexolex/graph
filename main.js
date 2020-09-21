@@ -42,14 +42,18 @@ function exportToSql() {
         console.log("Nodes: " + g.nodes.length);
         console.log("Edges: " + g.edges.length);
 
-        let csv = "data:text/csv;charset=utf-8," + "id,type,text\n" + g.nodes.map(n => [n.id, n.type, n.text].join(",")).join("\n");
-        download(csv, "nodes.csv");
-
-        csv = "data:text/csv;charset=utf-8," + "src,trg,type,text\n" + g.edge.map(e => [e.src, e.trg, e.type, e.text].join(",")).join("\n");
-        download(csv, "edges.csv");
+        let script = genSqlScript(g);
+        download(script, "script.sql");
 
         console.log("Successfully exported a graph to SQL script.");
     });
+}
+
+function genSqlScript(g) {
+
+    let script = "";
+    //TODO: implement
+    return script;
 }
 
 function toGraph(selection) {
@@ -72,7 +76,7 @@ function toGraph(selection) {
                 "startWidgetId": line.startWidgetId,
                 "endWidgetId": line.endWidgetId,
 
-                "type" : getTypeFromString(caption, "Entity"),
+                "type" : getTypeFromString(caption, "Relation"),
                 "text" : getTextFromString(caption)
             }
         })
