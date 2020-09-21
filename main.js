@@ -6,17 +6,10 @@ miro.onReady(() => {
 
             getWidgetMenuItems: (widgets) => {
                 return Promise.resolve([{
-                    tooltip: 'Export graph to JSON',
+                    tooltip: 'Export to SQL script',
                     svgIcon: export_icon24,
                     onClick: async () => {
-                        await authAndExport(exportToJson);
-                    }
-                },
-                {
-                    tooltip: 'Export graph to CSV',
-                    svgIcon: export_icon24,
-                    onClick: async () => {
-                        await authAndExport(exportToCsv);
+                        await authAndExport(exportToSql);
                     }
                 }])
             }
@@ -40,46 +33,67 @@ async function authAndExport(exportToFunc) {
     }
 }
 
-function exportToCsv() {
+function exportToSql() {
+
     miro.board.selection.get().then((selection) => {
 
-        let nodes = selection.filter(w => w.type === "SHAPE").map(shape => [shape.id, shape.plainText]);
-        let nodesCsv = "data:text/csv;charset=utf-8," + "id,plainText\n" + nodes.map(e => e.join(",")).join("\n");
-        download(nodesCsv, "nodes.csv")
+        let g = toGraph(selection);
 
-        let edges = selection.filter(w => w.type === "LINE").map(line => [line.id, line.startWidgetId, line.endWidgetId, line.captions && line.captions.length > 0 ? line.captions[0].text : ""]);
-        let edgesCsv = "data:text/csv;charset=utf-8," + "id,startWidgetId,endWindgetId,caption\n" + edges.map(e => e.join(",")).join("\n");
-        download(edgesCsv, "edges.csv")
+        console.log("Nodes: " + g.nodes.length());
+        console.log("Edges: " + g.edges.length());
 
-        console.log("Successfully exported a graph to CSV.")
+        let csv = "data:text/csv;charset=utf-8," + "id,type,text\n" + g.nodes.map(n => [n.id, n.type, n.text].join(",")).join("\n");
+        download(csv, "nodes.csv");
+
+        csv = "data:text/csv;charset=utf-8," + "src,trg,type,text\n" + g.edge.map(e => [e.src, e.trg, e.type, e.text].join(",")).join("\n");
+        download(csv, "edges.csv");
+
+        console.log("Successfully exported a graph to SQL script.");
     });
 }
 
-function exportToJson() {
-    miro.board.selection.get().then((selection) => {
+function toGraph(selection) {
 
-        let graph = {
-            "nodes": selection.filter(w => w.type === "SHAPE").map(shape => {
-                return {
-                    "id": shape.id,
-                    "plainText": shape.plainText
-                }
-            }),
-            "edges": selection.filter(w => w.type === "LINE").map(line => {
-                return {
-                    "id": line.id,
-                    "startWidgetId": line.startWidgetId,
-                    "endWidgetId": line.endWidgetId,
-                    "caption": line.captions && line.captions.length > 0 ? line.captions[0].text : ""
-                }
-            })
-        };
+    let graph = {
+        "nodes": selection.filter(w => w.type === "SHAPE").map(shape => {
 
-        var graphJson = "data:text/json;charset=utf-8," + JSON.stringify(graph);
-        download(graphJson, "graph.json");
+            return {
+                "id": shape.id,
+                "type" : getTypeFromString(shape.plainText, "Entity"),
+                "text" : getTextFromString(shape.plainText)
+            }
+        }),
+        "edges": selection.filter(w => w.type === "LINE").map(line => {
 
-        console.log("Successfully exported a graph to JSON.")
-    })
+            let caption =  line.captions && line.captions.length > 0 ? line.captions[0].text : "";
+
+            return {
+                "id": line.id,
+                "startWidgetId": line.startWidgetId,
+                "endWidgetId": line.endWidgetId,
+
+                "type" : getTypeFromString(caption, "Entity"),
+                "text" : getTextFromString(caption)
+            }
+        })
+    };
+
+    return graph;
+}
+
+function getTextFromString(s) {
+    if (s === undefined || s.length() === 0)
+        return "";
+
+    return  s.substring(s.indexOf("]") + 1).trim();
+}
+
+function getTypeFromString(s, defType) {
+    if (s === undefined || s.length() === 0)
+        return defType;
+
+    let type = s.substring(s.indexOf("[") + 1, s.indexOf("]")).trim();
+    return type != "" ? type : defType;
 }
 
 function download(content, fileName) {
