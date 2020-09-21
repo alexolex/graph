@@ -39,8 +39,8 @@ function exportToSql() {
 
         let g = toGraph(selection);
 
-        console.log("Nodes: " + g.nodes.length());
-        console.log("Edges: " + g.edges.length());
+        console.log("Nodes: " + g.nodes.length);
+        console.log("Edges: " + g.edges.length);
 
         let csv = "data:text/csv;charset=utf-8," + "id,type,text\n" + g.nodes.map(n => [n.id, n.type, n.text].join(",")).join("\n");
         download(csv, "nodes.csv");
@@ -82,14 +82,14 @@ function toGraph(selection) {
 }
 
 function getTextFromString(s) {
-    if (s === undefined || s.length() === 0)
+    if (s === undefined || s.length === 0)
         return "";
 
     return  s.substring(s.indexOf("]") + 1).trim();
 }
 
 function getTypeFromString(s, defType) {
-    if (s === undefined || s.length() === 0)
+    if (s === undefined || s.length === 0)
         return defType;
 
     let type = s.substring(s.indexOf("[") + 1, s.indexOf("]")).trim();
