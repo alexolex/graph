@@ -42,7 +42,7 @@ function exportToSql() {
         console.log("Nodes: " + g.nodes.length);
         console.log("Edges: " + g.edges.length);
 
-        let script = genSqlScript(g);
+        let script = "hello";//genSqlScript(g);
         download(script, "script.sql");
 
         console.log("Successfully exported a graph to SQL script.");
