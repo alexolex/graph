@@ -142,6 +142,7 @@ function groupByType(elements){
         }
         byType.get(e.type).push(e);
     });
+    return byType;
 }
 
 function toGraph(selection) {
