@@ -62,9 +62,7 @@ function buildSqlScript(g) {
     for (let [type, edges] of edgesByType.entries()) {
         script += buildInsertEdgesSnippet(type, edges);
     }
-
-
-    console.log(script);
+    
     return script;
 }
 
@@ -88,8 +86,7 @@ IF OBJECT_ID ('dbo.${type}', 'U') IS NULL
 	)
 	as EDGE
 
-INSERT INTO [${type}] ($from_id, $to_id, [boardId], [text]) 
-    Values ${getEdgesInsertValues(edges)}
+INSERT INTO [${type}] ($from_id, $to_id, [boardId], [text]) Values ${getEdgesInsertValues(edges)}
 GO
 `;
     return sql;
@@ -99,17 +96,16 @@ function getEdgesInsertValues(edges) {
     return edges.map(e => 
         "\n("+
             "(select $node_id from [...] where boardId = '" + e.startWidgetId + "'), " +
-            "(select $node_id from [...] where boardId = '" + e.edgeWidgetId  + "'), " +
+            "(select $node_id from [...] where boardId = '" + e.endWidgetId  + "'), " +
             "'" + e.widgetId + "', " + 
-            "'" + e.text + "'" +         
-        + ")"
+            "'" + e.text + "'" + + -
+        ")"
     ).join(",");
 }
 
 function buildInsertNodesSnippet(type, nodes){
 
-    let sql = `
-IF TYPE_ID('${type}Type') IS NULL
+    let sql = `IF TYPE_ID('${type}Type') IS NULL
 	CREATE TYPE [${type}Type] AS TABLE (
 		[id] int,
 		[boardId] nvarchar(30),
@@ -123,14 +119,14 @@ IF OBJECT_ID ('dbo.${type}', 'U') IS NULL
 		[id] int IDENTITY(1,1) UNIQUE,
 		[boardId] nvarchar(30) NOT NULL,
 		[text] nvarchar(max) NULL,
-		[whenCreated] [datetime] NOT NULL CONSTRAINT CreateTS_DF DEFAULT CURRENT_TIMESTAMP
+		[whenCreated] [datetime] NOT NULL DEFAULT CURRENT_TIMESTAMP
 	)
 	as NODE
 GO
 
-INSERT INTO [${type}] ([boardId], [text]) 
-    Values ${nodes.map(n => "\n('" + n.widgetId + "', '" + n.text + "')").join(",")}
-GO`;
+INSERT INTO [${type}] ([boardId], [text]) Values ${nodes.map(n => "\n('" + n.widgetId + "', '" + n.text + "')").join(",")}
+GO
+`;
     
     return sql;
 }
