@@ -63,6 +63,8 @@ function genSqlScript(g) {
         script += buildInsertEdgesSnippet(type, edges);
     }
 
+
+    console.log(script);
     return script;
 }
 
