@@ -78,7 +78,7 @@ function buildInsertEdgesSnippet(type, edges){
 		[id] int IDENTITY(1,1) UNIQUE,
 		[boardId] nvarchar(30) NOT NULL,
 		[text] nvarchar(max) NULL,
-        [_whenCreated] [datetime] NOT NULL DEFAULT CURRENT_TIMESTAMP
+        [_whenCreated] [datetime] NOT NULL DEFAULT CURRENT_TIMESTAMP,
         [_whenUpdated] [datetime] NOT NULL DEFAULT CURRENT_TIMESTAMP
 	)
 	as EDGE
@@ -109,7 +109,7 @@ function buildInsertNodesSnippet(type, nodes){
 		[id] int IDENTITY(1,1) UNIQUE,
 		[boardId] nvarchar(30) NOT NULL,
 		[text] nvarchar(max) NULL,
-        [_whenCreated] [datetime] NOT NULL DEFAULT CURRENT_TIMESTAMP
+        [_whenCreated] [datetime] NOT NULL DEFAULT CURRENT_TIMESTAMP,
         [_whenUpdated] [datetime] NOT NULL DEFAULT CURRENT_TIMESTAMP
 	)
 	as NODE
