@@ -73,22 +73,13 @@ function buildSqlScript(g) {
 }
 
 function buildInsertEdgesSnippet(type, edges){
-    let sql = `
-IF TYPE_ID('${type}Type') IS NULL
-	CREATE TYPE [${type}Type] AS TABLE (
-		[id] int,
-		[boardId] nvarchar(30),
-		[text] nvarchar(max),
-		[whenCreated] [datetime]
-	)
-GO
-
-IF OBJECT_ID ('dbo.${type}', 'U') IS NULL
+    let sql = `IF OBJECT_ID ('dbo.${type}', 'U') IS NULL
 	CREATE TABLE [${type}] (
 		[id] int IDENTITY(1,1) UNIQUE,
 		[boardId] nvarchar(30) NOT NULL,
 		[text] nvarchar(max) NULL,
-		[whenCreated] [datetime] NOT NULL DEFAULT CURRENT_TIMESTAMP
+        [_whenCreated] [datetime] NOT NULL DEFAULT CURRENT_TIMESTAMP
+        [_whenUpdated] [datetime] NOT NULL DEFAULT CURRENT_TIMESTAMP
 	)
 	as EDGE
 
@@ -111,21 +102,13 @@ function getEdgesInsertValues(edges) {
 
 function buildInsertNodesSnippet(type, nodes){
 
-    let sql = `IF TYPE_ID('${type}Type') IS NULL
-	CREATE TYPE [${type}Type] AS TABLE (
-		[id] int,
-		[boardId] nvarchar(30),
-		[text] nvarchar(max),
-		[whenCreated] [datetime]
-	)
-GO
-
-IF OBJECT_ID ('dbo.${type}', 'U') IS NULL
+    let sql = `IF OBJECT_ID ('dbo.${type}', 'U') IS NULL
 	CREATE TABLE [${type}] (
 		[id] int IDENTITY(1,1) UNIQUE,
 		[boardId] nvarchar(30) NOT NULL,
 		[text] nvarchar(max) NULL,
-		[whenCreated] [datetime] NOT NULL DEFAULT CURRENT_TIMESTAMP
+        [_whenCreated] [datetime] NOT NULL DEFAULT CURRENT_TIMESTAMP
+        [_whenUpdated] [datetime] NOT NULL DEFAULT CURRENT_TIMESTAMP
 	)
 	as NODE
 GO
