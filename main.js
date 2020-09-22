@@ -58,13 +58,56 @@ function genSqlScript(g) {
         script += buildInsertNodesSnippet(type, nodes);
     }
 
+    let edgesByType = groupByType(g.edges);
+    for (let [type, edges] of edgesByType.entries()) {
+        script += buildInsertEdgesSnippet(type, edges);
+    }
+
     return script;
+}
+
+function buildInsertEdgesSnippet(type, edges){
+    let sql = `
+IF TYPE_ID('${type}Type') IS NULL
+	CREATE TYPE [${type}Type] AS TABLE (
+		[id] int,
+		[boardId] nvarchar(30),
+		[text] nvarchar(max),
+		[whenCreated] [datetime]
+	)
+GO
+
+IF OBJECT_ID ('dbo.${type}', 'U') IS NULL
+	CREATE TABLE [${type}] (
+		[id] int IDENTITY(1,1) UNIQUE,
+		[boardId] nvarchar(30) NOT NULL,
+		[text] nvarchar(max) NULL,
+		[whenCreated] [datetime] NOT NULL DEFAULT CURRENT_TIMESTAMP
+	)
+	as EDGE
+
+INSERT INTO [${type}] ($from_id, $to_id, [boardId], [text]) 
+    Values ${getEdgesInsertValues(edges)}
+GO
+`;
+    return sql;
+}
+
+function getEdgesInsertValues(edges) {
+    return edges.map(e => 
+        "\n("+
+            "(select $node_id from [...] where boardId = '" + e.startWidgetId + "'), " +
+            "(select $node_id from [...] where boardId = '" + e.edgeWidgetId  + "'), " +
+            "'" + widgetId + "', " + 
+            "'" + text + "'" +         
+        + ")"
+    ).join(",");
 }
 
 function buildInsertNodesSnippet(type, nodes){
 
-    let s = 
-`IF TYPE_ID('${type}Type') IS NULL
+    let sql = `
+IF TYPE_ID('${type}Type') IS NULL
 	CREATE TYPE [${type}Type] AS TABLE (
 		[id] int,
 		[boardId] nvarchar(30),
@@ -83,11 +126,11 @@ IF OBJECT_ID ('dbo.${type}', 'U') IS NULL
 	as NODE
 GO
 
-INSERT INTO [${type}]
-    ([boardId], [text]) Values ${nodes.map(n => "\n('" + n.id + "'), ('" + n.text + "')").join(",")}
+INSERT INTO [${type}] ([boardId], [text]) 
+    Values ${nodes.map(n => "\n('" + n.widgetId + "', '" + n.text + "')").join(",")}
 GO`;
     
-    return s;
+    return sql;
 }
 
 function groupByType(elements){
@@ -97,7 +140,7 @@ function groupByType(elements){
         {
             byType.set(e.type, new Array());
         }
-        byType.set(e.type, byType.get(e.type).push(e));
+        byType.get(e.type).push(e);
     });
 }
 
@@ -107,9 +150,11 @@ function toGraph(selection) {
         "nodes": selection.filter(w => w.type === "SHAPE").map(shape => {
 
             return {
-                "id": shape.id,
+                "widgetId": shape.id,
                 "type" : getTypeFromString(shape.plainText, "Entity"),
-                "text" : getTextFromString(shape.plainText)
+                "text" : getTextFromString(shape.plainText),
+                "action" : "",
+                "targetId" : ""
             }
         }),
         "edges": selection.filter(w => w.type === "LINE").map(line => {
@@ -117,12 +162,14 @@ function toGraph(selection) {
             let caption =  line.captions && line.captions.length > 0 ? line.captions[0].text : "";
 
             return {
-                "id": line.id,
+                "widgetId": line.id,
                 "startWidgetId": line.startWidgetId,
                 "endWidgetId": line.endWidgetId,
 
                 "type" : getTypeFromString(caption, "Relation"),
-                "text" : getTextFromString(caption)
+                "text" : getTextFromString(caption),
+                "action" : "",
+                "targetId" : ""
             }
         })
     };
