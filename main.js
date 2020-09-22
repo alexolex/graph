@@ -82,9 +82,11 @@ function buildInsertEdgesSnippet(type, edges){
         [_whenUpdated] [datetime] NOT NULL DEFAULT CURRENT_TIMESTAMP
 	)
 	as EDGE
+GO
 
 INSERT INTO [${type}] ($from_id, $to_id, [boardId], [text]) Values ${getEdgesInsertValues(edges)}
 GO
+
 `;
     return sql;
 }
@@ -115,6 +117,7 @@ GO
 
 INSERT INTO [${type}] ([boardId], [text]) Values ${nodes.map(n => "\n('" + n.widgetId + "', '" + n.text + "')").join(",")}
 GO
+
 `;
     
     return sql;
