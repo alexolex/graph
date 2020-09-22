@@ -27,7 +27,13 @@ async function authAndExport(exportToFunc) {
         miro.board.ui.openModal('miro-graph-tools/not-authorized.html')
             .then(res => {
                 if (res === 'success') {
-                    exportToFunc();
+                    try{
+                        exportToFunc();
+                    }
+                    catch(err){
+                        console.log(err);
+                        alert("An exception happened. See the console for details.");
+                    }
                 }
             })
     }
@@ -95,8 +101,8 @@ GO
 function getEdgesInsertValues(edges) {
     return edges.map(e => 
         "\n("+
-            "(select $node_id from [...] where boardId = '" + e.startWidgetId + "'), " +
-            "(select $node_id from [...] where boardId = '" + e.endWidgetId  + "'), " +
+            "(select $node_id from [" + e.fromType + "] where boardId = '" + e.startWidgetId + "'), " +
+            "(select $node_id from [" + e.toType + "] where boardId = '" + e.endWidgetId  + "'), " +
             "'" + e.widgetId + "', " + 
             "'" + e.text + "'" +
         ")"
@@ -156,23 +162,29 @@ function toGraph(selection) {
                 "targetId" : ""
             }
         }),
-        "edges": selection.filter(w => w.type === "LINE").map(line => {
-
-            let caption =  line.captions && line.captions.length > 0 ? line.captions[0].text : "";
-
-            return {
-                "widgetId": line.id,
-                "startWidgetId": line.startWidgetId,
-                "endWidgetId": line.endWidgetId,
-
-                "type" : getTypeFromString(caption, "Relation"),
-                "text" : getTextFromString(caption),
-                "action" : "",
-                "targetId" : ""
-            }
-        })
+        "edges": []
     };
 
+    let nodesById = new Map(graph.nodes.map(n => [n.widgetId, n]));
+
+    graph.edges = selection.filter(w => w.type === "LINE").map(line => {
+
+        let caption =  line.captions && line.captions.length > 0 ? line.captions[0].text : "";
+
+        return {
+            "widgetId": line.id,
+            "startWidgetId": line.startWidgetId,
+            "endWidgetId": line.endWidgetId,
+
+            "type" : getTypeFromString(caption, "Relation"),
+            "fromType" : nodesById.get(line.startWidgetId).type,
+            "toType" : nodesById.get(line.endWidgetId).type,
+            "text" : getTextFromString(caption),
+            "action" : "",
+            "targetId" : ""
+        }
+    });
+    
     return graph;
 }
 
