@@ -195,12 +195,14 @@ function getTypeFromString(s, defType) {
     return type != "" ? type : defType;
 }
 
-function download(content, fileName) {
-    var encodedUri = encodeURI(content);
-    var link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", fileName);
-    document.body.appendChild(link); // Required for FF
+function download(text, filename) {
+    var element = document.createElement('a');
+    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+    element.setAttribute('download', filename);
 
-    link.click();
+    element.style.display = 'none';
+    document.body.appendChild(element);
+
+    element.click();
+    document.body.removeChild(element);
 }
