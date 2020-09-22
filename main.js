@@ -98,7 +98,7 @@ function getEdgesInsertValues(edges) {
             "(select $node_id from [...] where boardId = '" + e.startWidgetId + "'), " +
             "(select $node_id from [...] where boardId = '" + e.endWidgetId  + "'), " +
             "'" + e.widgetId + "', " + 
-            "'" + e.text + "'" + + -
+            "'" + e.text + "'" +
         ")"
     ).join(",");
 }
