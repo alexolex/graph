@@ -75,7 +75,8 @@ function buildSqlScript(g) {
 function buildInsertEdgesSnippet(type, edges){
     let sql = `IF OBJECT_ID ('dbo.${type}', 'U') IS NULL
 	CREATE TABLE [${type}] (
-		[id] int IDENTITY(1,1) UNIQUE,
+        [id] AS LOWER('${type}') + '_' + CAST(autoId AS NVARCHAR(20)) PERSISTED,
+		[autoId] int IDENTITY(1,1) UNIQUE,
 		[boardId] nvarchar(30) NOT NULL,
 		[text] nvarchar(max) NULL,
         [_whenCreated] [datetime] NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -106,7 +107,8 @@ function buildInsertNodesSnippet(type, nodes){
 
     let sql = `IF OBJECT_ID ('dbo.${type}', 'U') IS NULL
 	CREATE TABLE [${type}] (
-		[id] int IDENTITY(1,1) UNIQUE,
+        [id] AS LOWER('${type}') + '_' + CAST(autoId AS NVARCHAR(20)) PERSISTED,
+		[autoId] int IDENTITY(1,1) UNIQUE,
 		[boardId] nvarchar(30) NOT NULL,
 		[text] nvarchar(max) NULL,
         [_whenCreated] [datetime] NOT NULL DEFAULT CURRENT_TIMESTAMP,
