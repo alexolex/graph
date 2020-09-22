@@ -85,6 +85,10 @@ function buildInsertEdgesSnippet(type, edges){
 	as EDGE
 GO
 
+${buildOriginalTypeSnippet("string", type, "id")}
+${buildOriginalTypeSnippet("string", type, "boardId")}
+${buildOriginalTypeSnippet("string", type, "text")}
+
 INSERT INTO [${type}] ($from_id, $to_id, [boardId], [text]) Values ${getEdgesInsertValues(edges)}
 GO
 
@@ -117,12 +121,31 @@ function buildInsertNodesSnippet(type, nodes){
 	as NODE
 GO
 
+${buildOriginalTypeSnippet("string", type, "id")}
+${buildOriginalTypeSnippet("string", type, "boardId")}
+${buildOriginalTypeSnippet("string", type, "text")}
+
 INSERT INTO [${type}] ([boardId], [text]) Values ${nodes.map(n => "\n('" + n.widgetId + "', '" + n.text + "')").join(",")}
 GO
 
 `;
     
     return sql;
+}
+
+function buildOriginalTypeSnippet(columnType, tableName, columnName){
+    return `EXEC sp_addextendedproperty
+    @name = N'OriginalType',
+    @value = '${columnType}',
+    @level0type = N'Schema',
+    @level0name = 'dbo',
+    @level1type = N'Table',
+    @level1name = '${tableName}',
+    @level2type = N'Column',
+    @level2name = '${columnName}';
+GO
+
+`;
 }
 
 function groupByType(elements){
